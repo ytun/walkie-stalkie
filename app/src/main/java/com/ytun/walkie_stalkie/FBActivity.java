@@ -1,13 +1,20 @@
 package com.ytun.walkie_stalkie;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,6 +31,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 
 
@@ -37,8 +45,10 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
 
     Button stalkBtn, logOutBtn;
     EditText nameEdTxt;
-    ArrayList<TextView> listTxtView = new ArrayList<TextView>();
-    TextView result1TxtV, result2TxtV, result3TxtV;
+    ArrayList<TextView> listNameTxtView = new ArrayList<TextView>();
+    ArrayList<TextView> listDetailTxtView = new ArrayList<TextView>();
+    ArrayList<ImageView> listImageView = new ArrayList<ImageView>();
+//    TextView name1TxtV, name2TxtV, name3TxtV;
 
 
     String result;
@@ -49,13 +59,21 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
         FacebookSdk.sdkInitialize(this); //SDK needs to be initiated
         setContentView(R.layout.activity_main);
 
-        result1TxtV = (TextView) findViewById(R.id.result1_txtv);
-        result2TxtV = (TextView) findViewById(R.id.result2_txtv);
-        result3TxtV = (TextView) findViewById(R.id.result3_txtv);
+//        name1TxtV = (TextView) findViewById(R.id.name1_txtv);
+//        name2TxtV = (TextView) findViewById(R.id.name2_txtv);
+//        name3TxtV = (TextView) findViewById(R.id.name3_txtv);
 
-        listTxtView.add(result1TxtV);
-        listTxtView.add(result2TxtV);
-        listTxtView.add(result3TxtV);
+        listNameTxtView.add((TextView) findViewById(R.id.name1_txtv));
+        listNameTxtView.add((TextView) findViewById(R.id.name2_txtv));
+        listNameTxtView.add((TextView) findViewById(R.id.name3_txtv));
+
+        listDetailTxtView.add((TextView) findViewById(R.id.detail1_txtv));
+        listDetailTxtView.add((TextView) findViewById(R.id.detail2_txtv));
+        listDetailTxtView.add((TextView) findViewById(R.id.detail3_txtv));
+
+        listImageView.add((ImageView)findViewById(R.id.profileImage1));
+        listImageView.add((ImageView)findViewById(R.id.profileImage2));
+        listImageView.add((ImageView)findViewById(R.id.profileImage3));
 
         nameEdTxt =(EditText) findViewById(R.id.search_edtxt);
 
@@ -94,7 +112,7 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
 
 
     private void search(String name) {
-        String query = "search?q=" +name +"&type=user&fields=id,name,link&limit=3";
+        String query = "search?q=" +name +"&type=user&fields=id,name,link,picture,is_verified&limit=3";
 
 
         try {
@@ -111,6 +129,8 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
 
                             String name = "";
                             String link="";
+                            String picLink="";
+                            boolean verified=false;
 
                             try {
 
@@ -122,21 +142,27 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
 
                                     name = data.get("name").toString();
                                     link = data.get("link").toString();
+                                    verified = (boolean)data.get("is_verified");
+
+                                    picLink = data.getJSONObject("picture").getJSONObject("data").get("url").toString();
+
                                     LOGGER.debug("name: "+name);
                                     LOGGER.debug("link: "+link);
+                                    LOGGER.debug("picLink: "+picLink);
 
+                                    //gender,locale,timezone,updated_time,verified
 
-                                    listTxtView.get(i).setText(name + "\n"+ link);
+                                    listNameTxtView.get(i).setText(Html.fromHtml(
+                                            "<a href=\""+link+"\">"+name+"</a> ") );
+                                    listNameTxtView.get(i).setMovementMethod(LinkMovementMethod.getInstance());
+                                    listDetailTxtView.get(i).setText((verified)?"verified": "not verified");
+
+                                    new FBActivity.DownloadImage(listImageView.get(i)).execute(picLink);
                                 }
-
-
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-
-
                         }
-
                     }
 
             ).executeAsync();
@@ -185,53 +211,32 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
         finish();
     }
 
-//    @Override
-//    public void onClick(View view) {
-//        switch (view.getId()){
-////            case R.id.share:
-////                share();
-////                break;
-//
-//            case R.id.stalk_btn:
-//                System.out.println("        Stalking in progress...");
-//                checkInternetConnection();
-//                System.out.println("        Stalking started...");
-//                try {
-//                    String name = nameEdTxt.getText().toString();
-//                    search(name);
-//
-////                    if(name.length()>0){ //& searchOnFb(name)){
-////                        User[] resultArr= search(name);
-////
-////                        for(int i=0; i<resultArr.length; i++){
-////                            listTxtView.get(i).setText(resultArr[i].getName());
-////                        }
-////
-////                    }
-//                }
-//                catch(Exception e){
-//                    LOGGER.error("UI Exception while fetching facebook search results, error_message=[{}], \nerror_stack=[{}]", e.getMessage(), e.getStackTrace());
-//
-//                    Toast.makeText(view.getContext(), "Invalid Name - Try again", Toast.LENGTH_LONG).show();
-//                }
-//                break;
-//
-//            case R.id.logout:
-//                logout();
-//                break;
-//        }
-//    }
 
-//    @Override
-//    public void onClick(View v) {
-//
-//        switch(v.getId()){
-//            case R.id.stalk_btn:
-//                search();
-//                break;
-//        }
-//    }
 
+    public class DownloadImage extends AsyncTask<String, Void, Bitmap> {
+        ImageView bmImage;
+
+        public DownloadImage(ImageView bmImage) {
+            this.bmImage = bmImage;
+        }
+
+        protected Bitmap doInBackground(String... urls) {
+            String urldisplay = urls[0];
+            Bitmap mIcon11 = null;
+            try {
+                InputStream in = new java.net.URL(urldisplay).openStream();
+                mIcon11 = BitmapFactory.decodeStream(in);
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+                e.printStackTrace();
+            }
+            return mIcon11;
+        }
+
+        protected void onPostExecute(Bitmap result) {
+            bmImage.setImageBitmap(result);
+        }
+    }
 }
 
 
