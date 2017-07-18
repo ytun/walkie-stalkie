@@ -22,6 +22,10 @@ import org.json.JSONObject;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/**
+ *  Used code snippet from: https://www.sitepoint.com/integrating-the-facebook-graph-api-in-android/
+ */
+
 public class LoginActivity extends AppCompatActivity {
 
     private CallbackManager callbackManager;

@@ -36,7 +36,7 @@ import java.util.ArrayList;
 
 
 /**
- * Created by ytun on 5/21/17.
+ * Created by Yamin Tun on 5/21/17.
  */
 
 public class FBActivity extends AppCompatActivity{ // implements View.OnClickListener {
@@ -48,8 +48,6 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
     ArrayList<TextView> listNameTxtView = new ArrayList<TextView>();
     ArrayList<TextView> listDetailTxtView = new ArrayList<TextView>();
     ArrayList<ImageView> listImageView = new ArrayList<ImageView>();
-//    TextView name1TxtV, name2TxtV, name3TxtV;
-
 
     String result;
 
@@ -58,10 +56,6 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
         super.onCreate(savedInstanceState);
         FacebookSdk.sdkInitialize(this); //SDK needs to be initiated
         setContentView(R.layout.activity_main);
-
-//        name1TxtV = (TextView) findViewById(R.id.name1_txtv);
-//        name2TxtV = (TextView) findViewById(R.id.name2_txtv);
-//        name3TxtV = (TextView) findViewById(R.id.name3_txtv);
 
         listNameTxtView.add((TextView) findViewById(R.id.name1_txtv));
         listNameTxtView.add((TextView) findViewById(R.id.name2_txtv));
@@ -104,16 +98,13 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
             public void onClick(View v) {
 
                 logout();
-
             }
         });
-
     }
 
 
     private void search(String name) {
         String query = "search?q=" +name +"&type=user&fields=id,name,link,picture,is_verified&limit=3";
-
 
         try {
             new GraphRequest(
@@ -123,6 +114,8 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
                         public void onCompleted(GraphResponse response) {
                             LOGGER.debug(response.toString());
 
+                            clearScreen();
+
                             JSONObject data=null;
                             JSONArray jsonArr = null;
                             JSONObject jsonObj=response.getJSONObject();
@@ -131,6 +124,7 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
                             String link="";
                             String picLink="";
                             boolean verified=false;
+
 
                             try {
 
@@ -171,11 +165,7 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
         catch(Exception e){
             LOGGER.error("Search Exception while fetching facebook search results, error_message=[{}], \nerror_stack=[{}]", e.getMessage(), e.getStackTrace());
         }
-
-
     }
-
-
 
     private boolean checkInternetConnection() {
         // get Connectivity Manager object to check connection
@@ -190,8 +180,7 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
         // Check for network connections
         if ( netInfo.getState() ==
                 android.net.NetworkInfo.State.CONNECTED ||
-                netInfo.getState() ==
-                        android.net.NetworkInfo.State.CONNECTING  ) {
+                netInfo.getState() ==  android.net.NetworkInfo.State.CONNECTING  ) {
             Toast.makeText(this, " Connected ", Toast.LENGTH_LONG).show();
             return true;
         }else if (
@@ -211,8 +200,17 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
         finish();
     }
 
+    public void clearScreen(){
 
+        for(int i=0; i<listNameTxtView.size(); i++){
+            listNameTxtView.get(i).setText("");
+            listDetailTxtView.get(i).setText("");
+            listImageView.get(i).setImageResource(android.R.color.transparent);
+        }
 
+    }
+
+    // Reference: http://web.archive.org/web/20120802025411/http://developer.aiwgame.com/imageview-show-image-from-url-on-android-4-0.html
     public class DownloadImage extends AsyncTask<String, Void, Bitmap> {
         ImageView bmImage;
 
@@ -237,6 +235,8 @@ public class FBActivity extends AppCompatActivity{ // implements View.OnClickLis
             bmImage.setImageBitmap(result);
         }
     }
+
+
 }
 
 
